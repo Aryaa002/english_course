@@ -1,0 +1,2 @@
+<?php
+// Halaman Hasil Kuis
