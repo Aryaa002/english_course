@@ -5,6 +5,12 @@ if (!isLoggedIn() || !isAdmin()) {
     redirect('login.php');
 }
 
+// Ambil statistik untuk sidebar
+$total_materi = $pdo->query("SELECT COUNT(*) FROM materi")->fetchColumn();
+$total_users = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'user'")->fetchColumn();
+$total_soal = $pdo->query("SELECT COUNT(*) FROM soal_latihan")->fetchColumn();
+$total_toefl = $pdo->query("SELECT COUNT(*) FROM toefl_tests")->fetchColumn();
+
 $error = '';
 $success = '';
 
@@ -27,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $video_url = trim($_POST['video_url']);
     $audio_url = trim($_POST['audio_url']);
     
-    // Validasi dasar
     if (empty($judul) || empty($deskripsi) || empty($kategori)) {
         $error = 'Field wajib (Judul, Deskripsi, Kategori) harus diisi!';
     } else {
@@ -61,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
         
-        // Jika tidak ada error, simpan ke database
         if (empty($error)) {
             $video_final = !empty($video_url) ? $video_url : $video_path;
             $audio_final = !empty($audio_url) ? $audio_url : $audio_path;
@@ -78,364 +82,232 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 }
-
-include '../includes/header.php';
 ?>
-
-<style>
-    .form-container {
-        background: white;
-        border-radius: 15px;
-        padding: 30px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah Materi - English Course</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* ===== ADMIN LAYOUT ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; min-height: 100vh; }
+        .admin-wrapper { display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { width: 280px; background: #1B2A4A; color: white; padding: 0; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; transition: all 0.3s; }
+        .sidebar-brand { padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        .sidebar-brand h3 { color: white; font-weight: 700; margin: 0; }
+        .sidebar-brand h3 span { color: #F4B41A; }
+        .sidebar-brand .subtitle { color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 5px; }
+        .sidebar-user { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        .sidebar-user .avatar { width: 60px; height: 60px; border-radius: 50%; background: rgba(244, 180, 26, 0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; border: 3px solid #F4B41A; }
+        .sidebar-user .avatar i { font-size: 28px; color: #F4B41A; }
+        .sidebar-user .name { font-weight: 600; font-size: 16px; }
+        .sidebar-user .role { color: rgba(255,255,255,0.6); font-size: 12px; }
+        .sidebar-nav { padding: 15px 0; }
+        .sidebar-nav .nav-label { padding: 10px 25px; font-size: 11px; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 1px; }
+        .sidebar-nav .nav-link { display: flex; align-items: center; padding: 12px 25px; color: rgba(255,255,255,0.7); text-decoration: none; transition: all 0.3s; border-left: 3px solid transparent; }
+        .sidebar-nav .nav-link:hover { background: rgba(255,255,255,0.05); color: white; border-left-color: #F4B41A; }
+        .sidebar-nav .nav-link.active { background: rgba(244, 180, 26, 0.1); color: #F4B41A; border-left-color: #F4B41A; }
+        .sidebar-nav .nav-link i { width: 24px; margin-right: 12px; font-size: 16px; }
+        .sidebar-nav .nav-link .badge { margin-left: auto; background: #F4B41A; color: #1B2A4A; }
+        
+        /* Main Content */
+        .main-content { margin-left: 280px; flex: 1; padding: 20px 30px; min-height: 100vh; }
+        
+        /* Top Bar */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #e0e0e0; margin-bottom: 25px; }
+        .top-bar .page-title h4 { color: #1B2A4A; font-weight: 700; margin: 0; }
+        .top-bar .page-title p { color: #999; font-size: 14px; margin: 0; }
+        .top-bar .user-info { display: flex; align-items: center; gap: 15px; }
+        .top-bar .user-info .date { color: #666; font-size: 14px; }
+        .top-bar .user-info .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 25px; font-weight: 600; text-decoration: none; transition: all 0.3s; }
+        .top-bar .user-info .logout-btn:hover { background: #c82333; transform: translateY(-2px); }
+        
+        /* Form */
+        .form-container { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .form-container label { font-weight: 600; color: #1B2A4A; }
+        .form-container .form-control { border-radius: 10px; border: 2px solid #e0e0e0; padding: 10px 15px; }
+        .form-container .form-control:focus { border-color: #F4B41A; box-shadow: 0 0 0 0.2rem rgba(244, 180, 26, 0.25); }
+        .form-container textarea { min-height: 150px; resize: vertical; }
+        
+        .upload-box { border: 2px dashed #d0d0d0; border-radius: 12px; padding: 30px 20px; text-align: center; transition: all 0.3s; cursor: pointer; background: #fafafa; }
+        .upload-box:hover { border-color: #F4B41A; background: rgba(244, 180, 26, 0.05); transform: translateY(-2px); }
+        .upload-box i { font-size: 50px; color: #F4B41A; display: block; margin-bottom: 10px; }
+        .upload-box small { color: #999; font-size: 12px; }
+        
+        .file-info { background: #e8f5e9; border-radius: 8px; padding: 10px 15px; margin-top: 10px; display: none; color: #2e7d32; font-weight: 500; }
+        .file-info.show { display: block; }
+        
+        .media-section { background: #f8f9fa; border-radius: 12px; padding: 20px; margin-bottom: 20px; border-left: 4px solid #F4B41A; }
+        
+        .btn-submit { background: #F4B41A; color: #1B2A4A; padding: 12px 40px; border-radius: 30px; font-weight: 700; font-size: 16px; border: none; transition: all 0.3s; width: 100%; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(244, 180, 26, 0.4); color: #1B2A4A; }
+        
+        .sidebar-toggle { display: none; background: #1B2A4A; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 20px; cursor: pointer; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+        .overlay.active { display: block; }
+        
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); width: 280px; } .sidebar.active { transform: translateX(0); } .main-content { margin-left: 0; padding: 15px; } .sidebar-toggle { display: block; } }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
     
-    .form-container label {
-        font-weight: 600;
-        color: #1B2A4A;
-    }
-    
-    .form-container .form-control {
-        border-radius: 10px;
-        border: 2px solid #e0e0e0;
-        padding: 10px 15px;
-    }
-    
-    .form-container .form-control:focus {
-        border-color: #F4B41A;
-        box-shadow: 0 0 0 0.2rem rgba(244, 180, 26, 0.25);
-    }
-    
-    .form-container textarea {
-        min-height: 150px;
-        resize: vertical;
-    }
-    
-    .upload-box {
-        border: 2px dashed #d0d0d0;
-        border-radius: 12px;
-        padding: 30px 20px;
-        text-align: center;
-        transition: all 0.3s;
-        cursor: pointer;
-        background: #fafafa;
-    }
-    
-    .upload-box:hover {
-        border-color: #F4B41A;
-        background: rgba(244, 180, 26, 0.05);
-        transform: translateY(-2px);
-    }
-    
-    .upload-box i {
-        font-size: 50px;
-        color: #1B2A4A;
-        display: block;
-        margin-bottom: 10px;
-    }
-    
-    .upload-box .upload-icon {
-        color: #F4B41A;
-    }
-    
-    .upload-box p {
-        margin: 5px 0;
-        color: #666;
-    }
-    
-    .upload-box small {
-        color: #999;
-        font-size: 12px;
-    }
-    
-    .file-info {
-        background: #e8f5e9;
-        border-radius: 8px;
-        padding: 10px 15px;
-        margin-top: 10px;
-        display: none;
-        color: #2e7d32;
-        font-weight: 500;
-    }
-    
-    .file-info.show {
-        display: block;
-    }
-    
-    .file-info i {
-        margin-right: 8px;
-    }
-    
-    .media-section {
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
-        border-left: 4px solid #F4B41A;
-    }
-    
-    .media-section .section-title {
-        font-weight: 600;
-        color: #1B2A4A;
-        margin-bottom: 15px;
-    }
-    
-    .media-section .section-title i {
-        color: #F4B41A;
-        margin-right: 8px;
-    }
-    
-    .btn-submit {
-        background: #F4B41A;
-        color: #1B2A4A;
-        padding: 12px 40px;
-        border-radius: 30px;
-        font-weight: 700;
-        font-size: 16px;
-        border: none;
-        transition: all 0.3s;
-        width: 100%;
-    }
-    
-    .btn-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(244, 180, 26, 0.4);
-        color: #1B2A4A;
-    }
-    
-    .btn-back {
-        background: #1B2A4A;
-        color: white;
-        padding: 8px 20px;
-        border-radius: 25px;
-        border: none;
-        transition: all 0.3s;
-        text-decoration: none;
-    }
-    
-    .btn-back:hover {
-        background: #2C4066;
-        color: white;
-    }
-    
-    .preview-file {
-        display: inline-block;
-        background: #e3f2fd;
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 13px;
-        color: #1565c0;
-        margin-top: 5px;
-    }
-</style>
-
-<div class="admin-content" style="padding: 30px 0; background: #f8f9fa; min-height: 100vh;">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 style="color: #1B2A4A; font-weight: 700;">
-                <i class="fas fa-plus-circle" style="color: #F4B41A;"></i> Tambah Materi Baru
-            </h4>
-            <a href="materi.php" class="btn-back">
-                <i class="fas fa-arrow-left me-2"></i>Kembali
-            </a>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h3>English <span>Course</span></h3>
+                <div class="subtitle">Admin Panel</div>
+            </div>
+            <div class="sidebar-user">
+                <div class="avatar"><i class="fas fa-user-cog"></i></div>
+                <div class="name"><?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Admin'); ?></div>
+                <div class="role">Administrator</div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-label">Main Menu</div>
+                <a href="index.php" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="materi.php" class="nav-link active">
+                    <i class="fas fa-book"></i> Materi
+                    <span class="badge"><?php echo $total_materi; ?></span>
+                </a>
+                <a href="soal.php" class="nav-link">
+                    <i class="fas fa-question-circle"></i> Soal Latihan
+                    <span class="badge"><?php echo $total_soal; ?></span>
+                </a>
+                <a href="toefl.php" class="nav-link">
+                    <i class="fas fa-graduation-cap"></i> TOEFL
+                    <span class="badge"><?php echo $total_toefl; ?></span>
+                </a>
+                <a href="users.php" class="nav-link">
+                    <i class="fas fa-users"></i> Pengguna
+                    <span class="badge"><?php echo $total_users; ?></span>
+                </a>
+                <div class="nav-label mt-3">Lainnya</div>
+                <a href="../logout.php" class="nav-link" style="color: #dc3545;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </nav>
         </div>
         
-        <?php if($error): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle"></i> <?php echo $error; ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <?php if($success): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle"></i> <?php echo $success; ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <div class="form-container">
-            <form method="POST" action="" enctype="multipart/form-data">
-                <div class="row">
-                    <!-- Informasi Dasar -->
-                    <div class="col-md-12 mb-3">
-                        <label for="judul">Judul Materi <span style="color: red;">*</span></label>
-                        <input type="text" class="form-control" id="judul" name="judul" 
-                               placeholder="Masukkan judul materi" required>
-                    </div>
-                    
-                    <div class="col-md-4 mb-3">
-                        <label for="tipe_materi">Tipe Materi <span style="color: red;">*</span></label>
-                        <select class="form-control" id="tipe_materi" name="tipe_materi" required onchange="toggleMediaFields()">
-                            <option value="teks">📖 Teks / Bacaan</option>
-                            <option value="video">🎬 Video</option>
-                            <option value="audio">🎧 Audio (Listening)</option>
-                            <option value="interaktif">🔄 Interaktif</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-4 mb-3">
-                        <label for="kategori">Kategori <span style="color: red;">*</span></label>
-                        <select class="form-control" id="kategori" name="kategori" required>
-                            <option value="">Pilih Kategori</option>
-                            <option value="Grammar">Grammar</option>
-                            <option value="Vocabulary">Vocabulary</option>
-                            <option value="Speaking">Speaking</option>
-                            <option value="Reading">Reading</option>
-                            <option value="Writing">Writing</option>
-                            <option value="Listening">Listening</option>
-                            <option value="Business">Business</option>
-                            <option value="Academic">Academic</option>
-                            <option value="Test Preparation">Test Preparation</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-2 mb-3">
-                        <label for="tingkat">Tingkat</label>
-                        <select class="form-control" id="tingkat" name="tingkat">
-                            <option value="Beginner">Beginner</option>
-                            <option value="Intermediate">Intermediate</option>
-                            <option value="Advanced">Advanced</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-2 mb-3">
-                        <label for="durasi">Durasi</label>
-                        <input type="text" class="form-control" id="durasi" name="durasi" 
-                               placeholder="Contoh: 10 Jam">
-                    </div>
-                    
-                    <div class="col-md-12 mb-3">
-                        <label for="deskripsi">Deskripsi <span style="color: red;">*</span></label>
-                        <textarea class="form-control" id="deskripsi" name="deskripsi" rows="3" 
-                                  placeholder="Masukkan deskripsi materi" required></textarea>
-                    </div>
-                    
-                    <!-- Media Upload untuk Video -->
-                    <div class="col-md-12 mb-3" id="video_section" style="display: none;">
-                        <div class="media-section">
-                            <div class="section-title">
-                                <i class="fas fa-video"></i> Upload Video
-                            </div>
-                            <div class="upload-box" onclick="document.getElementById('video_file').click()">
-                                <i class="fas fa-video upload-icon"></i>
-                                <p><strong>Klik untuk upload video</strong></p>
-                                <small>Support: MP4, AVI, MOV, MKV, WEBM (Max 100MB)</small>
-                                <input type="file" class="d-none" id="video_file" name="video_file" accept="video/*" onchange="showFileInfo(this, 'video_info')">
-                                <div id="video_info" class="file-info">
-                                    <i class="fas fa-check-circle"></i> <span id="video_name"></span>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <label>Atau masukkan URL video (YouTube/Vimeo)</label>
-                                <input type="text" class="form-control" id="video_url" name="video_url" 
-                                       placeholder="https://www.youtube.com/watch?v=...">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Media Upload untuk Audio -->
-                    <div class="col-md-12 mb-3" id="audio_section" style="display: none;">
-                        <div class="media-section">
-                            <div class="section-title">
-                                <i class="fas fa-music"></i> Upload Audio (Listening)
-                            </div>
-                            <div class="upload-box" onclick="document.getElementById('audio_file').click()">
-                                <i class="fas fa-music upload-icon"></i>
-                                <p><strong>Klik untuk upload audio</strong></p>
-                                <small>Support: MP3, WAV, M4A, OGG, WMA (Max 50MB)</small>
-                                <input type="file" class="d-none" id="audio_file" name="audio_file" accept="audio/*" onchange="showFileInfo(this, 'audio_info')">
-                                <div id="audio_info" class="file-info">
-                                    <i class="fas fa-check-circle"></i> <span id="audio_name"></span>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <label>Atau masukkan URL audio</label>
-                                <input type="text" class="form-control" id="audio_url" name="audio_url" 
-                                       placeholder="https://example.com/audio.mp3">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Konten Teks -->
-                    <div class="col-md-12 mb-3" id="konten_section">
-                        <label for="konten">Konten Materi</label>
-                        <textarea class="form-control" id="konten" name="konten" rows="10" 
-                                  placeholder="Masukkan konten materi (gunakan tag HTML untuk format)"></textarea>
-                        <small class="text-muted">💡 Gunakan tag HTML untuk format teks (misal: &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;, dll)</small>
-                    </div>
-                    
-                    <div class="col-md-12">
-                        <button type="submit" class="btn-submit">
-                            <i class="fas fa-save me-2"></i>Simpan Materi
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="top-bar">
+                <div class="page-title">
+                    <div class="d-flex align-items-center">
+                        <button class="sidebar-toggle me-3" onclick="toggleSidebar()">
+                            <i class="fas fa-bars"></i>
                         </button>
+                        <div>
+                            <h4><i class="fas fa-plus-circle" style="color: #F4B41A;"></i> Tambah Materi</h4>
+                            <p>Tambah materi pembelajaran baru</p>
+                        </div>
                     </div>
                 </div>
-            </form>
+                <div class="user-info">
+                    <span class="date"><i class="far fa-calendar-alt"></i> <?php echo date('d F Y'); ?></span>
+                    <a href="../logout.php" class="logout-btn"><i class="fas fa-sign-out-alt me-1"></i> Logout</a>
+                </div>
+            </div>
+            
+            <!-- Konten -->
+            <?php if($error): ?>
+                <div class="alert alert-danger"><?php echo $error; ?></div>
+            <?php endif; ?>
+            <?php if($success): ?>
+                <div class="alert alert-success"><?php echo $success; ?></div>
+            <?php endif; ?>
+            
+            <div class="form-container">
+                <form method="POST" action="" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="judul">Judul Materi <span style="color: red;">*</span></label>
+                            <input type="text" class="form-control" id="judul" name="judul" placeholder="Masukkan judul materi" required>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="tipe_materi">Tipe Materi <span style="color: red;">*</span></label>
+                            <select class="form-control" id="tipe_materi" name="tipe_materi" required>
+                                <option value="teks">📖 Teks / Bacaan</option>
+                                <option value="video">🎬 Video</option>
+                                <option value="audio">🎧 Audio (Listening)</option>
+                                <option value="interaktif">🔄 Interaktif</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="kategori">Kategori <span style="color: red;">*</span></label>
+                            <select class="form-control" id="kategori" name="kategori" required>
+                                <option value="">Pilih Kategori</option>
+                                <option value="Grammar">Grammar</option>
+                                <option value="Vocabulary">Vocabulary</option>
+                                <option value="Speaking">Speaking</option>
+                                <option value="Reading">Reading</option>
+                                <option value="Writing">Writing</option>
+                                <option value="Listening">Listening</option>
+                                <option value="Business">Business</option>
+                                <option value="Academic">Academic</option>
+                                <option value="Test Preparation">Test Preparation</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-2 mb-3">
+                            <label for="tingkat">Tingkat</label>
+                            <select class="form-control" id="tingkat" name="tingkat">
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-2 mb-3">
+                            <label for="durasi">Durasi</label>
+                            <input type="text" class="form-control" id="durasi" name="durasi" placeholder="Contoh: 10 Jam">
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="deskripsi">Deskripsi <span style="color: red;">*</span></label>
+                            <textarea class="form-control" id="deskripsi" name="deskripsi" rows="3" placeholder="Masukkan deskripsi materi" required></textarea>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="konten">Konten Materi</label>
+                            <textarea class="form-control" id="konten" name="konten" rows="10" placeholder="Masukkan konten materi (gunakan tag HTML untuk format)"></textarea>
+                            <small class="text-muted">💡 Gunakan tag HTML untuk format teks (misal: &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;, dll)</small>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <button type="submit" class="btn-submit">
+                                <i class="fas fa-save me-2"></i>Simpan Materi
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-function toggleMediaFields() {
-    var tipe = document.getElementById('tipe_materi').value;
-    var videoSection = document.getElementById('video_section');
-    var audioSection = document.getElementById('audio_section');
-    var kontenSection = document.getElementById('konten_section');
-    
-    // Sembunyikan semua
-    videoSection.style.display = 'none';
-    audioSection.style.display = 'none';
-    kontenSection.style.display = 'none';
-    
-    // Tampilkan sesuai tipe
-    if (tipe == 'video') {
-        videoSection.style.display = 'block';
-        kontenSection.style.display = 'block';
-    } else if (tipe == 'audio') {
-        audioSection.style.display = 'block';
-        kontenSection.style.display = 'block';
-    } else if (tipe == 'teks' || tipe == 'interaktif') {
-        kontenSection.style.display = 'block';
-    }
-}
-
-function showFileInfo(input, infoId) {
-    var file = input.files[0];
-    var info = document.getElementById(infoId);
-    var nameSpan = info.querySelector('span');
-    
-    if (file) {
-        var fileSize = (file.size / (1024 * 1024)).toFixed(2);
-        nameSpan.textContent = file.name + ' (' + fileSize + ' MB)';
-        info.classList.add('show');
-    } else {
-        info.classList.remove('show');
-    }
-}
-
-// Drag and drop visual feedback
-document.querySelectorAll('.upload-box').forEach(box => {
-    box.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        this.style.borderColor = '#F4B41A';
-        this.style.background = 'rgba(244, 180, 26, 0.1)';
-    });
-    
-    box.addEventListener('dragleave', function(e) {
-        this.style.borderColor = '#d0d0d0';
-        this.style.background = '#fafafa';
-    });
-    
-    box.addEventListener('drop', function(e) {
-        e.preventDefault();
-        this.style.borderColor = '#d0d0d0';
-        this.style.background = '#fafafa';
-    });
-});
-
-// Inisialisasi
-toggleMediaFields();
-</script>
-
-<?php include '../includes/footer.php'; ?>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+        
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                document.getElementById('sidebar').classList.remove('active');
+                document.getElementById('overlay').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

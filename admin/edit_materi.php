@@ -19,8 +19,15 @@ if (!$materi) {
     redirect('materi.php');
 }
 
+// Statistik untuk sidebar
+$total_materi = $pdo->query("SELECT COUNT(*) FROM materi")->fetchColumn();
+$total_users = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'user'")->fetchColumn();
+$total_soal = $pdo->query("SELECT COUNT(*) FROM soal_latihan")->fetchColumn();
+$total_toefl = $pdo->query("SELECT COUNT(*) FROM toefl_tests")->fetchColumn();
+
 $error = '';
 $success = '';
+
 
 // Buat folder uploads jika belum ada
 $folders = ['../uploads/', '../uploads/videos/', '../uploads/audios/', '../uploads/images/'];
