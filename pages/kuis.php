@@ -249,7 +249,7 @@ include '../includes/header.php';
     <div class="container">
         <h2 style="color: #1B2A4A; font-weight: 700; margin-bottom: 30px;">
             <i class="fas fa-graduation-cap" style="color: #F4B41A;"></i> 
-            Kuis/Ujian <span style="color: #F4B41A;">Bahasa Inggris</span>
+            Kuis <span style="color: #F4B41A;">Bahasa Inggris</span>
         </h2>
         
         <?php if (isset($kuis_id) && $kuis_id > 0 && isset($kuis)): ?>
