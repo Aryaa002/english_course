@@ -5,6 +5,12 @@ if (!isLoggedIn() || !isAdmin()) {
     redirect('login.php');
 }
 
+// Statistik untuk sidebar
+$total_materi = $pdo->query("SELECT COUNT(*) FROM materi")->fetchColumn();
+$total_users = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'user'")->fetchColumn();
+$total_soal = $pdo->query("SELECT COUNT(*) FROM soal_latihan")->fetchColumn();
+$total_toefl = $pdo->query("SELECT COUNT(*) FROM toefl_tests")->fetchColumn();
+
 // Pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = 10;
@@ -36,12 +42,6 @@ $stmt = $pdo->prepare($countQuery);
 $stmt->execute($params);
 $total = $stmt->fetchColumn();
 $totalPages = ceil($total / $limit);
-
-// Ambil statistik
-$total_materi = $pdo->query("SELECT COUNT(*) FROM materi")->fetchColumn();
-$total_users = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'user'")->fetchColumn();
-$total_soal = $pdo->query("SELECT COUNT(*) FROM soal_latihan")->fetchColumn();
-$total_toefl = $pdo->query("SELECT COUNT(*) FROM toefl_tests")->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -51,12 +51,11 @@ $total_toefl = $pdo->query("SELECT COUNT(*) FROM toefl_tests")->fetchColumn();
     <title>Manajemen Materi - English Course</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Sertakan CSS yang sama seperti dashboard admin -->
     <style>
-        /* Copy semua style dari admin/index.php */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; min-height: 100vh; }
         .admin-wrapper { display: flex; min-height: 100vh; }
+        
         .sidebar { width: 280px; background: #1B2A4A; color: white; padding: 0; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; transition: all 0.3s; }
         .sidebar-brand { padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
         .sidebar-brand h3 { color: white; font-weight: 700; margin: 0; }
@@ -74,7 +73,9 @@ $total_toefl = $pdo->query("SELECT COUNT(*) FROM toefl_tests")->fetchColumn();
         .sidebar-nav .nav-link.active { background: rgba(244, 180, 26, 0.1); color: #F4B41A; border-left-color: #F4B41A; }
         .sidebar-nav .nav-link i { width: 24px; margin-right: 12px; font-size: 16px; }
         .sidebar-nav .nav-link .badge { margin-left: auto; background: #F4B41A; color: #1B2A4A; }
+        
         .main-content { margin-left: 280px; flex: 1; padding: 20px 30px; min-height: 100vh; }
+        
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #e0e0e0; margin-bottom: 25px; }
         .top-bar .page-title h4 { color: #1B2A4A; font-weight: 700; margin: 0; }
         .top-bar .page-title p { color: #999; font-size: 14px; margin: 0; }
@@ -82,18 +83,22 @@ $total_toefl = $pdo->query("SELECT COUNT(*) FROM toefl_tests")->fetchColumn();
         .top-bar .user-info .date { color: #666; font-size: 14px; }
         .top-bar .user-info .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 25px; font-weight: 600; text-decoration: none; transition: all 0.3s; }
         .top-bar .user-info .logout-btn:hover { background: #c82333; transform: translateY(-2px); }
+        
         .table-custom { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
         .table-custom thead { background: #1B2A4A; color: white; }
         .table-custom tbody tr:hover { background: rgba(244, 180, 26, 0.05); }
+        
         .btn-action { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 0 3px; }
         .btn-edit { background: #F4B41A; color: #1B2A4A; }
         .btn-edit:hover { background: #d4a015; color: #1B2A4A; }
         .btn-delete { background: #dc3545; color: white; }
         .btn-delete:hover { background: #c82333; color: white; }
         .status-badge { padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #d4edda; color: #155724; }
+        
         .sidebar-toggle { display: none; background: #1B2A4A; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 20px; cursor: pointer; }
         .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
         .overlay.active { display: block; }
+        
         @media (max-width: 768px) { .sidebar { transform: translateX(-100%); width: 280px; } .sidebar.active { transform: translateX(0); } .main-content { margin-left: 0; padding: 15px; } .sidebar-toggle { display: block; } }
     </style>
 </head>
@@ -119,18 +124,24 @@ $total_toefl = $pdo->query("SELECT COUNT(*) FROM toefl_tests")->fetchColumn();
                 </a>
                 <a href="materi.php" class="nav-link active">
                     <i class="fas fa-book"></i> Materi
+                    <span class="badge"><?php echo $total_materi; ?></span>
                 </a>
                 <a href="soal.php" class="nav-link">
                     <i class="fas fa-question-circle"></i> Soal Latihan
+                    <span class="badge"><?php echo $total_soal; ?></span>
                 </a>
                 <a href="toefl.php" class="nav-link">
                     <i class="fas fa-graduation-cap"></i> TOEFL
+                    <span class="badge"><?php echo $total_toefl; ?></span>
                 </a>
                 <a href="users.php" class="nav-link">
                     <i class="fas fa-users"></i> Pengguna
                     <span class="badge"><?php echo $total_users; ?></span>
                 </a>
                 <div class="nav-label mt-3">Lainnya</div>
+                <a href="../index.php" class="nav-link">
+                    <i class="fas fa-home"></i> Lihat Website
+                </a>
                 <a href="../logout.php" class="nav-link" style="color: #dc3545;">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
@@ -157,7 +168,6 @@ $total_toefl = $pdo->query("SELECT COUNT(*) FROM toefl_tests")->fetchColumn();
                 </div>
             </div>
             
-            <!-- Konten Materi -->
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                     <span style="color: #666;">Total Materi: <strong><?php echo $total; ?></strong></span>
@@ -188,11 +198,11 @@ $total_toefl = $pdo->query("SELECT COUNT(*) FROM toefl_tests")->fetchColumn();
                     <thead>
                         <tr>
                             <th style="width: 5%;">ID</th>
-                            <th style="width: 25%;">Judul</th>
+                            <th style="width: 30%;">Judul</th>
                             <th style="width: 20%;">Kategori</th>
                             <th style="width: 15%;">Tingkat</th>
-                            <th style="width: 15%;">Durasi</th>
-                            <th style="width: 20%;">Aksi</th>
+                            <th style="width: 15%;">Video</th>
+                            <th style="width: 15%;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -203,7 +213,17 @@ $total_toefl = $pdo->query("SELECT COUNT(*) FROM toefl_tests")->fetchColumn();
                                 <td><strong><?php echo htmlspecialchars($m['judul']); ?></strong></td>
                                 <td><span class="status-badge"><?php echo htmlspecialchars($m['kategori']); ?></span></td>
                                 <td><?php echo htmlspecialchars($m['tingkat']); ?></td>
-                                <td><?php echo htmlspecialchars($m['durasi']); ?></td>
+                                <td>
+                                    <?php if(!empty($m['video_pembelajaran'])): ?>
+                                        <span class="badge" style="background: #28a745; color: white;">
+                                            <i class="fas fa-check-circle"></i> Ada
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge" style="background: #6c757d; color: white;">
+                                            <i class="fas fa-times-circle"></i> Tidak
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
                                 <td>
                                     <a href="edit_materi.php?id=<?php echo $m['id']; ?>" class="btn btn-action btn-edit">
                                         <i class="fas fa-edit"></i> Edit

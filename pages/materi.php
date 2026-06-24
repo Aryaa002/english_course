@@ -1,14 +1,12 @@
 <?php
 require_once '../config/database.php';
 
-// Cek login - gunakan requireLogin()
 if (!isLoggedIn()) {
     redirect('login.php');
 }
 
-// Filter berdasarkan kategori dan tipe
+// Filter berdasarkan kategori
 $kategori = isset($_GET['kategori']) ? $_GET['kategori'] : '';
-$tipe = isset($_GET['tipe']) ? $_GET['tipe'] : '';
 
 $query = "SELECT * FROM materi WHERE 1=1";
 $params = [];
@@ -16,11 +14,6 @@ $params = [];
 if ($kategori) {
     $query .= " AND kategori = ?";
     $params[] = $kategori;
-}
-
-if ($tipe) {
-    $query .= " AND tipe_materi = ?";
-    $params[] = $tipe;
 }
 
 $query .= " ORDER BY created_at DESC";
@@ -33,7 +26,6 @@ $kategori_list = $pdo->query("SELECT DISTINCT kategori FROM materi ORDER BY kate
 
 include '../includes/header.php';
 ?>
-<!-- Sisa HTML sama seperti sebelumnya -->
 
 <style>
     .materi-page {
@@ -84,24 +76,13 @@ include '../includes/header.php';
         padding: 25px;
     }
     
-    .materi-card .card-header-media {
+    .materi-card .card-header {
         background: #1B2A4A;
         color: white;
         padding: 15px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-    }
-    
-    .media-icon {
-        font-size: 24px;
-    }
-    
-    .materi-card .badge-tipe {
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
     }
     
     .btn-outline-primary-custom {
@@ -111,11 +92,21 @@ include '../includes/header.php';
         padding: 8px 25px;
         font-weight: 600;
         transition: all 0.3s;
+        text-decoration: none;
     }
     
     .btn-outline-primary-custom:hover {
         background: #1B2A4A;
         color: white;
+    }
+    
+    .badge-video {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
     }
 </style>
 
@@ -134,7 +125,7 @@ include '../includes/header.php';
                 </div>
                 <div class="col-md-9">
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="materi.php" class="btn btn-filter <?php echo !$kategori && !$tipe ? 'active' : 'btn-outline-secondary'; ?>">
+                        <a href="materi.php" class="btn btn-filter <?php echo !$kategori ? 'active' : 'btn-outline-secondary'; ?>">
                             Semua
                         </a>
                         <?php foreach($kategori_list as $k): ?>
@@ -143,17 +134,6 @@ include '../includes/header.php';
                             <?php echo htmlspecialchars($k['kategori']); ?>
                         </a>
                         <?php endforeach; ?>
-                    </div>
-                    <div class="d-flex flex-wrap gap-2 mt-2">
-                        <a href="materi.php?tipe=teks" class="btn btn-filter <?php echo $tipe == 'teks' ? 'active' : 'btn-outline-secondary'; ?>">
-                            <i class="fas fa-book"></i> Teks
-                        </a>
-                        <a href="materi.php?tipe=video" class="btn btn-filter <?php echo $tipe == 'video' ? 'active' : 'btn-outline-secondary'; ?>">
-                            <i class="fas fa-video"></i> Video
-                        </a>
-                        <a href="materi.php?tipe=audio" class="btn btn-filter <?php echo $tipe == 'audio' ? 'active' : 'btn-outline-secondary'; ?>">
-                            <i class="fas fa-headphones"></i> Listening
-                        </a>
                     </div>
                 </div>
             </div>
@@ -165,20 +145,13 @@ include '../includes/header.php';
             <?php foreach($materi_list as $materi): ?>
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="materi-card">
-                    <div class="card-header-media">
-                        <span>
-                            <?php if ($materi['tipe_materi'] == 'video'): ?>
-                                <i class="fas fa-video media-icon"></i>
-                            <?php elseif ($materi['tipe_materi'] == 'audio'): ?>
-                                <i class="fas fa-headphones media-icon"></i>
-                            <?php else: ?>
-                                <i class="fas fa-book media-icon"></i>
-                            <?php endif; ?>
-                            <?php echo htmlspecialchars($materi['kategori']); ?>
-                        </span>
-                        <span class="badge-tipe" style="background: rgba(244, 180, 26, 0.2); color: #F4B41A;">
-                            <?php echo ucfirst($materi['tipe_materi']); ?>
-                        </span>
+                    <div class="card-header">
+                        <span><?php echo htmlspecialchars($materi['kategori']); ?></span>
+                        <?php if(!empty($materi['video_pembelajaran'])): ?>
+                            <span class="badge-video">
+                                <i class="fas fa-video"></i> Ada Video
+                            </span>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <h5 style="color: #1B2A4A; font-weight: 600; margin-bottom: 10px;">
@@ -188,16 +161,11 @@ include '../includes/header.php';
                             <?php echo substr(htmlspecialchars($materi['deskripsi']), 0, 100) . '...'; ?>
                         </p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <span style="font-size: 12px; color: #999;">
-                                    <i class="far fa-clock"></i> <?php echo htmlspecialchars($materi['durasi']); ?>
-                                </span>
-                                <span style="font-size: 12px; color: #999; margin-left: 10px;">
-                                    <i class="fas fa-signal"></i> <?php echo htmlspecialchars($materi['tingkat']); ?>
-                                </span>
-                            </div>
+                            <span style="font-size: 12px; color: #999;">
+                                <i class="fas fa-signal"></i> <?php echo htmlspecialchars($materi['tingkat']); ?>
+                            </span>
                             <a href="detail_materi.php?id=<?php echo $materi['id']; ?>" 
-                               class="btn btn-outline-primary-custom" style="padding: 5px 20px; font-size: 13px;">
+                               class="btn-outline-primary-custom" style="padding: 5px 20px; font-size: 13px;">
                                 Pelajari <i class="fas fa-arrow-right ms-1"></i>
                             </a>
                         </div>

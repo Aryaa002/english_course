@@ -40,12 +40,10 @@ $soal_list = $stmt->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* ===== ADMIN LAYOUT ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; min-height: 100vh; }
         .admin-wrapper { display: flex; min-height: 100vh; }
         
-        /* Sidebar */
         .sidebar { width: 280px; background: #1B2A4A; color: white; padding: 0; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; transition: all 0.3s; }
         .sidebar-brand { padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
         .sidebar-brand h3 { color: white; font-weight: 700; margin: 0; }
@@ -64,10 +62,8 @@ $soal_list = $stmt->fetchAll();
         .sidebar-nav .nav-link i { width: 24px; margin-right: 12px; font-size: 16px; }
         .sidebar-nav .nav-link .badge { margin-left: auto; background: #F4B41A; color: #1B2A4A; }
         
-        /* Main Content */
         .main-content { margin-left: 280px; flex: 1; padding: 20px 30px; min-height: 100vh; }
         
-        /* Top Bar */
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #e0e0e0; margin-bottom: 25px; }
         .top-bar .page-title h4 { color: #1B2A4A; font-weight: 700; margin: 0; }
         .top-bar .page-title p { color: #999; font-size: 14px; margin: 0; }
@@ -76,7 +72,6 @@ $soal_list = $stmt->fetchAll();
         .top-bar .user-info .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 25px; font-weight: 600; text-decoration: none; transition: all 0.3s; }
         .top-bar .user-info .logout-btn:hover { background: #c82333; transform: translateY(-2px); }
         
-        /* Table */
         .table-custom { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
         .table-custom thead { background: #1B2A4A; color: white; }
         .table-custom tbody tr:hover { background: rgba(244, 180, 26, 0.05); }
@@ -135,6 +130,9 @@ $soal_list = $stmt->fetchAll();
                     <span class="badge"><?php echo $total_users; ?></span>
                 </a>
                 <div class="nav-label mt-3">Lainnya</div>
+                <a href="../index.php" class="nav-link">
+                    <i class="fas fa-home"></i> Lihat Website
+                </a>
                 <a href="../logout.php" class="nav-link" style="color: #dc3545;">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
@@ -165,9 +163,11 @@ $soal_list = $stmt->fetchAll();
                 <div>
                     <span style="color: #666;">Total Soal: <strong><?php echo count($soal_list); ?></strong></span>
                 </div>
-                <a href="tambah_soal.php" class="btn" style="background: #F4B41A; color: #1B2A4A; padding: 10px 25px; border-radius: 25px; font-weight: 600;">
-                    <i class="fas fa-plus me-2"></i>Tambah Soal
-                </a>
+                <div class="d-flex gap-2">
+                    <a href="tambah_soal_bulk.php" class="btn" style="background: #28a745; color: white; padding: 10px 25px; border-radius: 25px; font-weight: 600;">
+                        <i class="fas fa-layer-group me-2"></i>Tambah Soal
+                    </a>     
+                </div>
             </div>
             
             <!-- Filter -->
@@ -195,12 +195,12 @@ $soal_list = $stmt->fetchAll();
                     <thead>
                         <tr>
                             <th style="width: 5%;">ID</th>
-                            <th style="width: 25%;">Pertanyaan</th>
+                            <th style="width: 30%;">Pertanyaan</th>
                             <th style="width: 20%;">Materi</th>
                             <th style="width: 15%;">Pilihan</th>
                             <th style="width: 10%;">Jawaban</th>
                             <th style="width: 10%;">Tingkat</th>
-                            <th style="width: 15%;">Aksi</th>
+                            <th style="width: 10%;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

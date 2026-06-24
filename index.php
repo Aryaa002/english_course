@@ -1220,54 +1220,52 @@ include 'includes/header.php';
 <!-- ============================================================ -->
 <!-- MATERI TERBARU SECTION -->
 <!-- ============================================================ -->
-<section class="materi-section" id="materi">
+<!-- Materi Terbaru Section -->
+<section style="padding: 80px 0;">
     <div class="container">
-        <div class="section-header" data-aos="fade-up">
-            <span class="badge-section"><i class="fas fa-book"></i> Materi Terbaru</span>
-            <h2>Mulai Belajar <span>Sekarang</span></h2>
-            <p>Pilih materi yang sesuai dengan kebutuhan dan tingkat kemampuan Anda</p>
-        </div>
-        
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <div></div>
-            <a href="<?php echo BASE_URL; ?>pages/materi.php" class="view-all-btn">
-                Lihat Semua Materi <i class="fas fa-arrow-right ms-2"></i>
+            <h2 style="color: #1B2A4A; font-weight: 700; font-size: 32px;">
+                Materi <span style="color: #F4B41A;">Terbaru</span>
+            </h2>
+            <a href="<?php echo BASE_URL; ?>pages/materi.php" style="color: #F4B41A; text-decoration: none; font-weight: 600;">
+                Lihat Semua <i class="fas fa-arrow-right ms-2"></i>
             </a>
         </div>
-        
         <div class="row">
-            <?php if(count($materi_terbaru) > 0): ?>
-                <?php foreach($materi_terbaru as $index => $materi): ?>
-                <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="<?php echo ($index * 100) + 100; ?>">
-                    <div class="materi-card">
-                        <div class="card-header-custom">
-                            <span class="kategori"><?php echo htmlspecialchars($materi['kategori']); ?></span>
-                            <span class="tingkat"><?php echo htmlspecialchars($materi['tingkat']); ?></span>
-                        </div>
-                        <div class="card-body-custom">
-                            <h5><?php echo htmlspecialchars($materi['judul']); ?></h5>
-                            <p><?php echo substr(htmlspecialchars($materi['deskripsi']), 0, 100) . '...'; ?></p>
-                        </div>
-                        <div class="card-footer-custom">
-                            <span class="durasi">
-                                <i class="far fa-clock"></i> <?php echo htmlspecialchars($materi['durasi']); ?>
+            <?php foreach($materi_terbaru as $materi): ?>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm" style="border-radius: 15px; transition: transform 0.3s; cursor: pointer;">
+                    <div class="card-body" style="padding: 25px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <span style="background: #1B2A4A; color: #F4B41A; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                <?php echo htmlspecialchars($materi['kategori']); ?>
                             </span>
-                            <a href="<?php echo BASE_URL; ?>pages/detail_materi.php?id=<?php echo $materi['id']; ?>" class="btn-learn">
-                                Pelajari <i class="fas fa-arrow-right ms-1"></i>
+                            <span style="background: #F4B41A20; color: #1B2A4A; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                <?php echo htmlspecialchars($materi['tingkat']); ?>
+                            </span>
+                        </div>
+                        <h5 style="color: #1B2A4A; font-weight: 600; margin-bottom: 10px;">
+                            <?php echo htmlspecialchars($materi['judul']); ?>
+                        </h5>
+                        <p style="color: #666; font-size: 14px;">
+                            <?php echo substr(htmlspecialchars($materi['deskripsi']), 0, 100) . '...'; ?>
+                        </p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                            <span style="color: #1B2A4A; font-size: 14px;">
+                                <i class="fas fa-signal" style="color: #F4B41A;"></i> <?php echo htmlspecialchars($materi['tingkat']); ?>
+                            </span>
+                            <a href="<?php echo BASE_URL; ?>pages/detail_materi.php?id=<?php echo $materi['id']; ?>" 
+                               style="background: #F4B41A; color: #1B2A4A; padding: 8px 20px; border-radius: 25px; text-decoration: none; font-weight: 600; font-size: 14px; transition: all 0.3s;">
+                                Pelajari
                             </a>
                         </div>
                     </div>
                 </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="col-12 text-center" style="padding: 60px 0;">
-                    <i class="fas fa-inbox" style="font-size: 50px; color: #ddd;"></i>
-                    <p style="color: #999; margin-top: 15px;">Belum ada materi tersedia</p>
-                </div>
-            <?php endif; ?>
+            </div>
+            <?php endforeach; ?>
         </div>
     </div>
-</section>
+</section>  
 
 <!-- ============================================================ -->
 <!-- TESTIMONI SECTION -->

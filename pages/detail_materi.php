@@ -2,7 +2,7 @@
 require_once '../config/database.php';
 
 if (!isLoggedIn()) {
-    redirect('login.php');
+    redirect('../login.php');
 }
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -20,11 +20,10 @@ if (!$materi) {
 
 include '../includes/header.php';
 ?>
-<!-- Sisa HTML sama seperti sebelumnya -->
 
 <style>
     .materi-detail {
-        padding: 50px 0;
+        padding: 40px 0 60px;
         background: #f8f9fa;
         min-height: 100vh;
     }
@@ -48,34 +47,262 @@ include '../includes/header.php';
         border-radius: 25px;
     }
     
-    .media-player {
-        background: #1B2A4A;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 30px;
+    .konten-materi {
+        line-height: 1.8;
+        font-size: 16px;
+        color: #333;
     }
     
-    .media-player video,
-    .media-player audio {
-        width: 100%;
-        border-radius: 10px;
-    }
-    
-    .media-player audio {
-        height: 60px;
-    }
-    
-    .transcript-section {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 20px;
-        margin-top: 20px;
-    }
-    
-    .transcript-section h5 {
+    .konten-materi h2 {
         color: #1B2A4A;
+        font-weight: 700;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        font-size: 28px;
         border-bottom: 2px solid #F4B41A;
         padding-bottom: 10px;
+    }
+    
+    .konten-materi h3 {
+        color: #1B2A4A;
+        font-weight: 600;
+        margin-top: 25px;
+        margin-bottom: 12px;
+        font-size: 22px;
+    }
+    
+    .konten-materi h4 {
+        color: #1B2A4A;
+        font-weight: 600;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        font-size: 18px;
+    }
+    
+    .konten-materi p {
+        margin-bottom: 15px;
+    }
+    
+    .konten-materi ul, 
+    .konten-materi ol {
+        padding-left: 25px;
+        margin-bottom: 15px;
+    }
+    
+    .konten-materi ul li,
+    .konten-materi ol li {
+        margin-bottom: 8px;
+    }
+    
+    .konten-materi pre {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 10px;
+        border-left: 4px solid #F4B41A;
+        overflow-x: auto;
+        font-size: 15px;
+        line-height: 1.6;
+        margin: 15px 0;
+    }
+    
+    .konten-materi table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+    }
+    
+    .konten-materi table th,
+    .konten-materi table td {
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+    }
+    
+    .konten-materi table th {
+        background: #1B2A4A;
+        color: white;
+    }
+    
+    .konten-materi table tr:nth-child(even) {
+        background: #f8f9fa;
+    }
+    
+    .konten-materi hr {
+        margin: 30px 0;
+        border: 0;
+        border-top: 2px solid #f0f0f0;
+    }
+    
+    .konten-materi .highlight-box {
+        background: #1B2A4A;
+        color: white;
+        padding: 20px 25px;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+    
+    .konten-materi .highlight-box h4 {
+        color: #F4B41A;
+        margin-top: 0;
+    }
+    
+    .konten-materi .highlight-box ul {
+        margin-bottom: 0;
+    }
+    
+    .konten-materi .highlight-box ul li {
+        color: rgba(255,255,255,0.9);
+    }
+    
+    .konten-materi .example-wrong {
+        background: #f8d7da;
+        padding: 15px 20px;
+        border-radius: 10px;
+        border-left: 4px solid #dc3545;
+        margin: 15px 0;
+        color: #721c24;
+    }
+    
+    .konten-materi .example-correct {
+        background: #d4edda;
+        padding: 15px 20px;
+        border-radius: 10px;
+        border-left: 4px solid #28a745;
+        margin: 15px 0;
+        color: #155724;
+    }
+    
+    /* ===== VIDEO PEMBELAJARAN ===== */
+    .video-section {
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 3px solid #F4B41A;
+    }
+    
+    .video-section .video-title {
+        color: #1B2A4A;
+        font-weight: 700;
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+    
+    .video-section .video-title i {
+        color: #F4B41A;
+        margin-right: 10px;
+    }
+    
+    .video-wrapper {
+        background: #1B2A4A;
+        border-radius: 15px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .video-wrapper iframe,
+    .video-wrapper video {
+        width: 100%;
+        border-radius: 10px;
+        display: block;
+    }
+    
+    .video-wrapper iframe {
+        min-height: 400px;
+    }
+    
+    .video-wrapper video {
+        max-height: 500px;
+    }
+    
+    .video-wrapper .video-caption {
+        color: rgba(255,255,255,0.7);
+        text-align: center;
+        margin-top: 12px;
+        font-size: 14px;
+    }
+    
+    .nav-buttons {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .btn-nav {
+        padding: 10px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-nav-prev {
+        background: #e9ecef;
+        color: #495057;
+    }
+    
+    .btn-nav-prev:hover {
+        background: #dee2e6;
+        color: #495057;
+        transform: translateX(-3px);
+    }
+    
+    .btn-nav-next {
+        background: #F4B41A;
+        color: #1B2A4A;
+    }
+    
+    .btn-nav-next:hover {
+        background: #d4a015;
+        color: #1B2A4A;
+        transform: translateX(3px);
+    }
+    
+    .btn-latihan {
+        background: #1B2A4A;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-latihan:hover {
+        background: #2C4066;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+        .materi-content {
+            padding: 20px;
+        }
+        .konten-materi h2 {
+            font-size: 22px;
+        }
+        .konten-materi h3 {
+            font-size: 18px;
+        }
+        .video-wrapper iframe {
+            min-height: 200px;
+        }
+        .nav-buttons {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .btn-nav {
+            justify-content: center;
+        }
     }
 </style>
 
@@ -89,145 +316,121 @@ include '../includes/header.php';
         </nav>
         
         <div class="materi-content">
-            <!-- Header -->
+            <!-- HEADER -->
             <div class="materi-header">
                 <div class="d-flex justify-content-between align-items-start flex-wrap">
                     <div>
-                        <h2 style="color: #1B2A4A; font-weight: 700;"><?php echo htmlspecialchars($materi['judul']); ?></h2>
+                        <h2 style="color: #1B2A4A; font-weight: 700; font-size: 28px;">
+                            <?php echo htmlspecialchars($materi['judul']); ?>
+                        </h2>
                         <div class="mt-2">
                             <span class="badge" style="background: #1B2A4A; color: white;"><?php echo htmlspecialchars($materi['kategori']); ?></span>
                             <span class="badge" style="background: #F4B41A; color: #1B2A4A;"><?php echo htmlspecialchars($materi['tingkat']); ?></span>
-                            <span class="badge" style="background: #e0e0e0; color: #333;">
-                                <i class="far fa-clock"></i> <?php echo htmlspecialchars($materi['durasi']); ?>
-                            </span>
-                            <span class="badge" style="background: #d4edda; color: #155724;">
-                                <i class="fas fa-<?php echo $materi['tipe_materi'] == 'video' ? 'video' : ($materi['tipe_materi'] == 'audio' ? 'music' : 'book'); ?>"></i>
-                                <?php echo ucfirst($materi['tipe_materi']); ?>
-                            </span>
+                            <?php if(!empty($materi['video_pembelajaran'])): ?>
+                                <span class="badge" style="background: #28a745; color: white;">
+                                    <i class="fas fa-video"></i> Ada Video
+                                </span>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="mt-2 mt-md-0">
-                        <a href="latihan_soal.php?materi_id=<?php echo $materi['id']; ?>" class="btn" style="background: #F4B41A; color: #1B2A4A; padding: 10px 25px; border-radius: 25px; font-weight: 600;">
-                            <i class="fas fa-puzzle-piece me-2"></i>Latihan Soal
+                        <a href="latihan_soal.php?materi_id=<?php echo $materi['id']; ?>" class="btn-latihan">
+                            <i class="fas fa-puzzle-piece"></i> Latihan Soal
                         </a>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Deskripsi -->
-            <div class="mb-4">
-                <p style="font-size: 16px; color: #555;"><?php echo nl2br(htmlspecialchars($materi['deskripsi'])); ?></p>
-            </div>
-            
-            <!-- Media Player untuk Video/Audio -->
-            <?php if ($materi['tipe_materi'] == 'video'): ?>
-            <div class="media-player">
-                <?php if (!empty($materi['video_url']) && strpos($materi['video_url'], 'youtube.com') !== false): 
-                    // YouTube embed
-                    parse_str(parse_url($materi['video_url'], PHP_URL_QUERY), $query);
-                    $youtube_id = $query['v'] ?? '';
-                ?>
-                    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-                        <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 10px;" 
-                                src="https://www.youtube.com/embed/<?php echo $youtube_id; ?>" 
-                                frameborder="0" allowfullscreen></iframe>
-                    </div>
-                <?php elseif (!empty($materi['video_url']) && strpos($materi['video_url'], 'vimeo.com') !== false): ?>
-                    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-                        <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 10px;" 
-                                src="<?php echo $materi['video_url']; ?>" 
-                                frameborder="0" allowfullscreen></iframe>
-                    </div>
-                <?php elseif (!empty($materi['video_url']) && file_exists('../' . $materi['video_url'])): ?>
-                    <video controls>
-                        <source src="../<?php echo $materi['video_url']; ?>" type="video/mp4">
-                        Browser Anda tidak mendukung video tag.
-                    </video>
-                <?php else: ?>
-                    <p style="color: white; text-align: center; padding: 40px 0;">
-                        <i class="fas fa-video" style="font-size: 50px; opacity: 0.5;"></i>
-                        <br>Video belum tersedia
-                    </p>
-                <?php endif; ?>
-            </div>
-            <?php endif; ?>
-            
-            <!-- Audio Player untuk Listening -->
-            <?php if ($materi['tipe_materi'] == 'audio'): ?>
-            <div class="media-player">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <i class="fas fa-headphones" style="color: #F4B41A; font-size: 40px;"></i>
-                    <h4 style="color: white; margin-top: 10px;">Listening Exercise</h4>
-                    <p style="color: rgba(255,255,255,0.7);">Dengarkan audio dengan seksama, lalu kerjakan soal latihan</p>
-                </div>
-                <?php if (!empty($materi['audio_url']) && file_exists('../' . $materi['audio_url'])): ?>
-                    <audio controls style="width: 100%;">
-                        <source src="../<?php echo $materi['audio_url']; ?>" type="audio/mpeg">
-                        Browser Anda tidak mendukung audio tag.
-                    </audio>
-                <?php elseif (!empty($materi['audio_url']) && filter_var($materi['audio_url'], FILTER_VALIDATE_URL)): ?>
-                    <audio controls style="width: 100%;">
-                        <source src="<?php echo $materi['audio_url']; ?>" type="audio/mpeg">
-                        Browser Anda tidak mendukung audio tag.
-                    </audio>
-                <?php else: ?>
-                    <p style="color: white; text-align: center; padding: 40px 0;">
-                        <i class="fas fa-music" style="font-size: 50px; opacity: 0.5;"></i>
-                        <br>Audio belum tersedia
-                    </p>
-                <?php endif; ?>
                 
-                <div class="transcript-section mt-3">
-                    <h5><i class="fas fa-file-alt" style="color: #F4B41A;"></i> Transcript (Script)</h5>
-                    <div style="max-height: 300px; overflow-y: auto; padding: 15px; background: white; border-radius: 8px;">
-                        <?php 
-                        // Cari transcript dari konten atau gunakan konten sebagai transcript
-                        $transcript = $materi['konten'] ?: 'Transcript akan segera ditambahkan.';
-                        echo nl2br(htmlspecialchars($transcript)); 
-                        ?>
-                    </div>
-                </div>
+                <p style="color: #666; margin-top: 15px; font-size: 16px;">
+                    <?php echo nl2br(htmlspecialchars($materi['deskripsi'])); ?>
+                </p>
             </div>
-            <?php endif; ?>
             
-            <!-- Konten Teks -->
-            <?php if ($materi['tipe_materi'] == 'teks' || $materi['tipe_materi'] == 'interaktif'): ?>
-            <div class="konten-materi mt-4" style="line-height: 1.8; font-size: 16px; color: #333;">
+            <!-- KONTEN MATERI -->
+            <div class="konten-materi">
                 <?php echo $materi['konten']; ?>
             </div>
+            
+            <!-- VIDEO PEMBELAJARAN -->
+            <?php if (!empty($materi['video_pembelajaran'])): ?>
+            <div class="video-section">
+                <div class="video-title">
+                    <i class="fas fa-video"></i> Video Pembelajaran
+                </div>
+                <div class="video-wrapper">
+                    <?php 
+                    $video_pembelajaran = $materi['video_pembelajaran'];
+                    
+                    if (strpos($video_pembelajaran, 'youtube.com/watch?v=') !== false || 
+                        strpos($video_pembelajaran, 'youtu.be/') !== false):
+                        
+                        if (strpos($video_pembelajaran, 'youtu.be/') !== false) {
+                            $video_id = substr($video_pembelajaran, strpos($video_pembelajaran, 'youtu.be/') + 9);
+                        } else {
+                            parse_str(parse_url($video_pembelajaran, PHP_URL_QUERY), $query);
+                            $video_id = $query['v'] ?? '';
+                        }
+                    ?>
+                        <iframe src="https://www.youtube.com/embed/<?php echo $video_id; ?>" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen></iframe>
+                    <?php 
+                    elseif (file_exists('../' . $video_pembelajaran)): 
+                    ?>
+                        <video controls>
+                            <source src="../<?php echo $video_pembelajaran; ?>" type="video/mp4">
+                            Browser Anda tidak mendukung video tag.
+                        </video>
+                    <?php 
+                    elseif (filter_var($video_pembelajaran, FILTER_VALIDATE_URL)): 
+                    ?>
+                        <video controls>
+                            <source src="<?php echo $video_pembelajaran; ?>" type="video/mp4">
+                            Browser Anda tidak mendukung video tag.
+                        </video>
+                    <?php else: ?>
+                        <p style="color: white; text-align: center; padding: 40px 0;">
+                            <i class="fas fa-video" style="font-size: 40px; opacity: 0.5;"></i>
+                            <br>Video pembelajaran belum tersedia
+                        </p>
+                    <?php endif; ?>
+                    
+                    <div class="video-caption">
+                        <i class="fas fa-info-circle"></i> Tonton video ini untuk memahami materi dengan lebih baik
+                    </div>
+                </div>
+            </div>
             <?php endif; ?>
             
-            <!-- Tombol Navigasi -->
-            <div class="mt-5 pt-4 border-top">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <?php
-                        // Ambil materi sebelumnya dan selanjutnya
-                        $prev = $pdo->prepare("SELECT id, judul FROM materi WHERE id < ? ORDER BY id DESC LIMIT 1");
-                        $prev->execute([$materi['id']]);
-                        $prev_materi = $prev->fetch();
-                        
-                        $next = $pdo->prepare("SELECT id, judul FROM materi WHERE id > ? ORDER BY id ASC LIMIT 1");
-                        $next->execute([$materi['id']]);
-                        $next_materi = $next->fetch();
-                        ?>
-                        <?php if ($prev_materi): ?>
-                        <a href="detail_materi.php?id=<?php echo $prev_materi['id']; ?>" class="btn btn-outline-secondary" style="border-radius: 25px;">
-                            <i class="fas fa-arrow-left me-2"></i> Sebelumnya
-                        </a>
-                        <?php endif; ?>
-                    </div>
-                    <div>
-                        <?php if ($next_materi): ?>
-                        <a href="detail_materi.php?id=<?php echo $next_materi['id']; ?>" class="btn" style="background: #F4B41A; color: #1B2A4A; border-radius: 25px; font-weight: 600;">
-                            Selanjutnya <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
-                        <?php endif; ?>
-                    </div>
+            <!-- NAVIGASI -->
+            <div class="nav-buttons">
+                <div>
+                    <?php
+                    $prev = $pdo->prepare("SELECT id, judul FROM materi WHERE id < ? ORDER BY id DESC LIMIT 1");
+                    $prev->execute([$materi['id']]);
+                    $prev_materi = $prev->fetch();
+                    ?>
+                    <?php if ($prev_materi): ?>
+                    <a href="detail_materi.php?id=<?php echo $prev_materi['id']; ?>" class="btn-nav btn-nav-prev">
+                        <i class="fas fa-arrow-left"></i> Sebelumnya
+                    </a>
+                    <?php endif; ?>
+                </div>
+                <div>
+                    <?php
+                    $next = $pdo->prepare("SELECT id, judul FROM materi WHERE id > ? ORDER BY id ASC LIMIT 1");
+                    $next->execute([$materi['id']]);
+                    $next_materi = $next->fetch();
+                    ?>
+                    <?php if ($next_materi): ?>
+                    <a href="detail_materi.php?id=<?php echo $next_materi['id']; ?>" class="btn-nav btn-nav-next">
+                        Selanjutnya <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<?php include '../includes/footer.php'; ?>  
+<?php include '../includes/footer.php'; ?>
