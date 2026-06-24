@@ -37,12 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_section'])) {
     $nama = trim($_POST['nama']);
     $deskripsi = trim($_POST['deskripsi']);
     $urutan = (int)$_POST['urutan'];
+    $waktu = (int)$_POST['waktu'];
     
     if (empty($nama)) {
         $error = 'Nama section harus diisi!';
     } else {
-        $stmt = $pdo->prepare("INSERT INTO toefl_sections (toefl_id, nama, deskripsi, urutan) VALUES (?, ?, ?, ?)");
-        if ($stmt->execute([$toefl_id, $nama, $deskripsi, $urutan])) {
+        $stmt = $pdo->prepare("INSERT INTO toefl_sections (toefl_id, nama, deskripsi, urutan, waktu) VALUES (?, ?, ?, ?, ?)");
+        if ($stmt->execute([$toefl_id, $nama, $deskripsi, $urutan, $waktu])) {
             $success = 'Section berhasil ditambahkan!';
             echo '<meta http-equiv="refresh" content="1">';
         } else {
@@ -204,17 +205,22 @@ if (isset($_GET['hapus'])) {
                 </h6>
                 <form method="POST" action="">
                     <div class="row">
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label>Nama Section *</label>
                             <input type="text" class="form-control" name="nama" placeholder="Contoh: Listening Comprehension" required>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label>Deskripsi</label>
                             <input type="text" class="form-control" name="deskripsi" placeholder="Deskripsi section">
                         </div>
                         <div class="col-md-2 mb-3">
                             <label>Urutan</label>
                             <input type="number" class="form-control" name="urutan" value="<?php echo count($sections) + 1; ?>" min="1">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label>Waktu (menit)</label>
+                            <input type="number" class="form-control" name="waktu" value="30" min="0" max="180" placeholder="30">
+                            <small class="text-muted">0 = tidak terbatas</small>
                         </div>
                         <div class="col-md-2 mb-3 d-flex align-items-end">
                             <button type="submit" name="tambah_section" class="btn-submit w-100">
@@ -234,6 +240,15 @@ if (isset($_GET['hapus'])) {
                             <h5 style="color: #1B2A4A; font-weight: 600;">
                                 <span class="badge" style="background: #F4B41A; color: #1B2A4A;"><?php echo $section['urutan']; ?></span>
                                 <?php echo htmlspecialchars($section['nama']); ?>
+                                <?php if($section['waktu'] > 0): ?>
+                                    <span class="badge" style="background: #28a745; color: white; font-size: 12px;">
+                                        <i class="fas fa-clock"></i> <?php echo $section['waktu']; ?> menit
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge" style="background: #6c757d; color: white; font-size: 12px;">
+                                        <i class="fas fa-infinity"></i> Tak terbatas
+                                    </span>
+                                <?php endif; ?>
                             </h5>
                             <p style="color: #666; margin: 0; font-size: 14px;"><?php echo htmlspecialchars($section['deskripsi']); ?></p>
                         </div>
@@ -248,7 +263,7 @@ if (isset($_GET['hapus'])) {
                                 <i class="fas fa-file-alt"></i> Reading
                             </a>
                             <a href="toefl_sections.php?toefl_id=<?php echo $toefl_id; ?>&hapus=<?php echo $section['id']; ?>" 
-                               class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus section ini?')">
+                               class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus section ini? Semua soal dan audio terkait akan terhapus.')">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </div>

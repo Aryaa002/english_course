@@ -111,6 +111,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_soal'])) {
         if (empty($pertanyaan) || empty($pilihan_a) || empty($pilihan_b) || empty($jawaban_benar)) {
             $error = 'Field wajib harus diisi!';
         } else {
+            // ===== PERBAIKAN: Ubah 0 menjadi NULL =====
+            $audio_group_id_val = ($audio_group_id_val == 0) ? null : $audio_group_id_val;
+            $passage_id_val = ($passage_id_val == 0) ? null : $passage_id_val;
+            
             $stmt = $pdo->prepare("INSERT INTO toefl_questions (section_id, audio_group_id, passage_id, type, pertanyaan, pilihan_a, pilihan_b, pilihan_c, pilihan_d, pilihan_e, jawaban_benar, poin, media_type, media_url, media_file) 
                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             if ($stmt->execute([$section_id, $audio_group_id_val, $passage_id_val, $type, $pertanyaan, $pilihan_a, $pilihan_b, $pilihan_c, $pilihan_d, $pilihan_e, $jawaban_benar, $poin, $media_type, $media_url, $media_file])) {
@@ -129,7 +133,6 @@ if (isset($_GET['hapus'])) {
     $stmt = $pdo->prepare("DELETE FROM toefl_questions WHERE id = ? AND section_id = ?");
     $stmt->execute([$id, $section_id]);
     
-    // Redirect dengan parameter yang sama
     $redirect_url = 'toefl_questions.php?section_id=' . $section_id;
     if ($audio_group_id > 0) {
         $redirect_url .= '&audio_group_id=' . $audio_group_id;
@@ -149,6 +152,7 @@ if (isset($_GET['hapus'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* ===== SAMA SEPERTI SEBELUMNYA ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; min-height: 100vh; }
         .admin-wrapper { display: flex; min-height: 100vh; }

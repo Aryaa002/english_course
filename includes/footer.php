@@ -66,11 +66,7 @@
                         </li>
                         <li style="margin-bottom: 12px;">
                             <i class="fas fa-map-marker-alt" style="color: #F4B41A; width: 20px;"></i> 
-                            Jakarta, Indonesia
-                        </li>
-                        <li>
-                            <i class="fas fa-clock" style="color: #F4B41A; width: 20px;"></i> 
-                            Senin - Jumat, 08:00 - 17:00
+                            Bangka Belitung, Indonesia
                         </li>
                     </ul>
                 </div>
