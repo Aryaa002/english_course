@@ -121,7 +121,7 @@ if ($toefl_id > 0) {
         }
         
         // ============================================================
-        // PROSES SUBMIT JAWABAN - AMBIL DARI SESSION
+        // PROSES SUBMIT JAWABAN - PERHITUNGAN SKOR TOEFL iBT
         // ============================================================
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_toefl']) && !$result) {
             // Ambil semua jawaban dari session
@@ -154,31 +154,43 @@ if ($toefl_id > 0) {
                 $stmt->execute([$sec['id']]);
                 $sec_questions = $stmt->fetchAll();
                 
+                // Tentukan tipe section berdasarkan nama
+                $section_type = 'structure';
+                $nama = strtolower($sec['nama']);
+                if (strpos($nama, 'listening') !== false) {
+                    $section_type = 'listening';
+                } elseif (strpos($nama, 'reading') !== false) {
+                    $section_type = 'reading';
+                } elseif (strpos($nama, 'writing') !== false) {
+                    $section_type = 'writing';
+                }
+                
                 foreach ($sec_questions as $soal) {
-                    $type = $soal['type'];
                     $soal_id = $soal['id'];
                     $jawaban_user = $all_jawaban[$soal_id] ?? '';
                     $jawaban_benar = $soal['jawaban_benar'];
                     
-                    $section_total[$type]++;
+                    $section_total[$section_type]++;
                     
                     if (!empty($jawaban_user) && $jawaban_user == $jawaban_benar) {
-                        $section_benar[$type]++;
+                        $section_benar[$section_type]++;
                     }
                 }
             }
             
-            // Fungsi konversi ke skala 0-30
+            // ============================================================
+            // KONVERSI SKOR TOEFL iBT (Skala 0-30 per section)
+            // ============================================================
             function calculateToeflScore($benar, $total) {
                 if ($total == 0) return 0;
-                return round(($benar / $total) * 30, 1);
+                return (int) round(($benar / $total) * 30); // Hasil integer
             }
-            
+                        
             $listening_skor = calculateToeflScore($section_benar['listening'], $section_total['listening']);
             $structure_skor = calculateToeflScore($section_benar['structure'], $section_total['structure']);
             $reading_skor = calculateToeflScore($section_benar['reading'], $section_total['reading']);
             $writing_skor = calculateToeflScore($section_benar['writing'], $section_total['writing']);
-            $total_skor = round($listening_skor + $structure_skor + $reading_skor + $writing_skor, 1);
+            $total_skor = (int) ($listening_skor + $structure_skor + $reading_skor + $writing_skor);
             
             $total_benar = array_sum($section_benar);
             $total_soal = array_sum($section_total);
@@ -207,6 +219,106 @@ if ($toefl_id > 0) {
             echo '<meta http-equiv="refresh" content="0;url=toefl.php?id=' . $toefl_id . '">';
             exit();
         }
+
+            // ============================================================
+            // PROSES SUBMIT JAWABAN - PERHITUNGAN SKOR TOEFL iBT (INTEGER)
+            // ============================================================
+            if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_toefl']) && !$result) {
+                // Ambil semua jawaban dari session
+                $all_jawaban = [];
+                if (isset($_SESSION['toefl_answers'][$toefl_id])) {
+                    foreach ($_SESSION['toefl_answers'][$toefl_id] as $sec_id => $answers) {
+                        foreach ($answers as $soal_id => $jawaban_user) {
+                            $all_jawaban[$soal_id] = $jawaban_user;
+                        }
+                    }
+                }
+                
+                // Inisialisasi counter per tipe soal
+                $section_benar = [
+                    'listening' => 0,
+                    'structure' => 0,
+                    'reading' => 0,
+                    'writing' => 0
+                ];
+                $section_total = [
+                    'listening' => 0,
+                    'structure' => 0,
+                    'reading' => 0,
+                    'writing' => 0
+                ];
+                
+                // Ambil semua soal dari semua section
+                foreach ($sections as $sec) {
+                    $stmt = $pdo->prepare("SELECT * FROM toefl_questions WHERE section_id = ?");
+                    $stmt->execute([$sec['id']]);
+                    $sec_questions = $stmt->fetchAll();
+                    
+                    // Tentukan tipe section berdasarkan nama
+                    $section_type = 'structure';
+                    $nama = strtolower($sec['nama']);
+                    if (strpos($nama, 'listening') !== false) {
+                        $section_type = 'listening';
+                    } elseif (strpos($nama, 'reading') !== false) {
+                        $section_type = 'reading';
+                    } elseif (strpos($nama, 'writing') !== false) {
+                        $section_type = 'writing';
+                    }
+                    
+                    foreach ($sec_questions as $soal) {
+                        $soal_id = $soal['id'];
+                        $jawaban_user = $all_jawaban[$soal_id] ?? '';
+                        $jawaban_benar = $soal['jawaban_benar'];
+                        
+                        $section_total[$section_type]++;
+                        
+                        if (!empty($jawaban_user) && $jawaban_user == $jawaban_benar) {
+                            $section_benar[$section_type]++;
+                        }
+                    }
+                }
+                
+                // ============================================================
+                // KONVERSI SKOR TOEFL iBT (INTEGER - Tanpa Desimal)
+                // ============================================================
+                function calculateToeflScore($benar, $total) {
+                    if ($total == 0) return 0;
+                    return (int) round(($benar / $total) * 30);
+                }
+                
+                $listening_skor = calculateToeflScore($section_benar['listening'], $section_total['listening']);
+                $structure_skor = calculateToeflScore($section_benar['structure'], $section_total['structure']);
+                $reading_skor = calculateToeflScore($section_benar['reading'], $section_total['reading']);
+                $writing_skor = calculateToeflScore($section_benar['writing'], $section_total['writing']);
+                $total_skor = (int) ($listening_skor + $structure_skor + $reading_skor + $writing_skor);
+                
+                $total_benar = array_sum($section_benar);
+                $total_soal = array_sum($section_total);
+                
+                // Simpan hasil
+                $stmt = $pdo->prepare("INSERT INTO toefl_results (user_id, toefl_id, total_skor, listening_skor, structure_skor, reading_skor, writing_skor, total_benar, total_salah, total_soal, jawaban, waktu_selesai, status) 
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'selesai')");
+                $stmt->execute([
+                    $user_id, 
+                    $toefl_id, 
+                    $total_skor, 
+                    $listening_skor, 
+                    $structure_skor, 
+                    $reading_skor, 
+                    $writing_skor, 
+                    $total_benar, 
+                    $total_soal - $total_benar, 
+                    $total_soal, 
+                    json_encode($all_jawaban)
+                ]);
+                
+                // Hapus session jawaban
+                unset($_SESSION['toefl_answers'][$toefl_id]);
+                unset($_SESSION['toefl_flagged'][$toefl_id]);
+                
+                echo '<meta http-equiv="refresh" content="0;url=toefl.php?id=' . $toefl_id . '">';
+                exit();
+            }
     }
 }
 
@@ -286,70 +398,366 @@ if (isset($result) && $result) {
     <style>
         .toefl-page { padding: 40px 0; background: #f8f9fa; min-height: 100vh; }
         .toefl-container { max-width: 900px; margin: 0 auto; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 5px 30px rgba(0,0,0,0.08); }
-        .result-box { background: linear-gradient(135deg, #1B2A4A, #2C4066); color: white; border-radius: 15px; padding: 30px; text-align: center; margin-bottom: 30px; }
-        .result-box .score { font-size: 56px; font-weight: 700; color: #F4B41A; }
-        .result-box .sub-score { display: inline-block; padding: 8px 20px; margin: 5px; background: rgba(255,255,255,0.1); border-radius: 10px; }
-        .result-box .sub-score .label { font-size: 12px; opacity: 0.7; display: block; }
-        .result-box .sub-score .value { font-size: 20px; font-weight: 700; color: #F4B41A; }
-        .status-lulus { color: #28a745; font-size: 24px; font-weight: 700; }
-        .status-tidak-lulus { color: #dc3545; font-size: 24px; font-weight: 700; }
+        
+        /* ===== RESULT BOX ===== */
+        .result-box { 
+            background: linear-gradient(135deg, #1B2A4A, #2C4066); 
+            color: white; 
+            border-radius: 15px; 
+            padding: 40px 30px; 
+            text-align: center; 
+            margin-bottom: 30px;
+        }
+        
+        .result-box .score-label {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+        
+        .result-box .score { 
+            font-size: 64px; 
+            font-weight: 700; 
+            color: #F4B41A; 
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        
+        .result-box .score-range {
+            font-size: 16px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 20px;
+        }
+        
+        .result-box .score-detail {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .result-box .sub-score { 
+            display: inline-block; 
+            padding: 8px 20px; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 10px; 
+            min-width: 80px;
+        }
+        
+        .result-box .sub-score .label { 
+            font-size: 11px; 
+            opacity: 0.6; 
+            display: block; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .result-box .sub-score .value { 
+            font-size: 22px; 
+            font-weight: 700; 
+            color: #F4B41A; 
+        }
+        
+        /* ===== RESULT INTERPRETATION ===== */
+        .interpretation-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            border-left: 4px solid #F4B41A;
+        }
+        
+        .interpretation-box h5 {
+            color: #1B2A4A;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .interpretation-box p {
+            color: #666;
+            font-size: 15px;
+            line-height: 1.7;
+            margin: 0;
+        }
+        
+        .interpretation-box .level-badge {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+        
+        .level-excellent {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .level-good {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .level-intermediate {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .level-basic {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* ===== PRINT STYLES ===== */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            body {
+                background: white !important;
+                padding: 10px !important;
+            }
+            
+            .navbar,
+            footer,
+            .toefl-header .header-right,
+            .toefl-header .btn,
+            .breadcrumb {
+                display: none !important;
+            }
+            
+            .toefl-wrapper {
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+            
+            .toefl-header {
+                background: #1B2A4A !important;
+                border-radius: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            .result-box {
+                background: #1B2A4A !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                border-radius: 0 !important;
+            }
+            
+            .result-box .score {
+                color: #F4B41A !important;
+            }
+            
+            .result-box .sub-score {
+                background: rgba(255,255,255,0.05) !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            .level-badge {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            .progress-bar {
+                background: #F4B41A !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            .toefl-container {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 0 !important;
+            }
+        }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .result-box .score { font-size: 48px; }
+            .result-box { padding: 30px 20px; }
+            .result-box .score-detail { gap: 12px; }
+            .result-box .sub-score { padding: 6px 14px; min-width: 60px; }
+            .result-box .sub-score .value { font-size: 18px; }
+            .interpretation-box { padding: 18px 20px; }
+        }
+        
+        @media (max-width: 480px) {
+            .result-box .score { font-size: 40px; }
+            .result-box .sub-score { min-width: 50px; padding: 4px 10px; }
+            .result-box .sub-score .value { font-size: 16px; }
+            .result-box .sub-score .label { font-size: 9px; }
+        }
     </style>
     <div class="toefl-page">
         <div class="container">
             <div class="toefl-container">
+                
+                <!-- ===== HEADER UNTUK PRINT ===== -->
+                <div class="print-only" style="display: none; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #F4B41A; padding-bottom: 15px;">
+                    <h2 style="color: #1B2A4A; margin: 0; font-weight: 700;">
+                        English <span style="color: #F4B41A;">Course</span>
+                    </h2>
+                    <p style="color: #666; margin: 0; font-size: 14px;">Laporan Hasil TOEFL iBT</p>
+                    <p style="color: #999; margin: 0; font-size: 12px;"><?php echo date('d F Y'); ?></p>
+                </div>
+                
                 <div class="result-box">
-                    <h5 style="color: #F4B41A; margin-bottom: 10px;">Hasil TOEFL</h5>
-                    <div class="score"><?php echo number_format($result['total_skor'], 1); ?></div>
-                    <div style="font-size: 16px; margin: 10px 0;">
-                        Skala TOEFL iBT: 0 – 120
-                    </div>
-                    <div style="font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 15px;">
-                        <?php echo $result['total_benar']; ?> Jawaban Benar dari <?php echo $result['total_soal']; ?> Soal
-                    </div>
-                    <div class="mt-3">
+                    <div class="score-label">Skor TOEFL iBT</div>
+                    <div class="score"><?php echo $result['total_skor']; ?></div>
+                    <div class="score-range">Skala 0 – 120</div>
+                    
+                    <div class="score-detail">
                         <div class="sub-score">
                             <span class="label">Listening</span>
-                            <span class="value"><?php echo number_format($result['listening_skor'], 1); ?></span>
+                            <span class="value"><?php echo $result['listening_skor']; ?></span>
                         </div>
                         <div class="sub-score">
                             <span class="label">Structure</span>
-                            <span class="value"><?php echo number_format($result['structure_skor'], 1); ?></span>
+                            <span class="value"><?php echo $result['structure_skor']; ?></span>
                         </div>
                         <div class="sub-score">
                             <span class="label">Reading</span>
-                            <span class="value"><?php echo number_format($result['reading_skor'], 1); ?></span>
+                            <span class="value"><?php echo $result['reading_skor']; ?></span>
                         </div>
                         <div class="sub-score">
                             <span class="label">Writing</span>
-                            <span class="value"><?php echo number_format($result['writing_skor'], 1); ?></span>
+                            <span class="value"><?php echo $result['writing_skor']; ?></span>
                         </div>
                     </div>
-                    <div class="mt-4">
-                        <?php 
-                        $passing_grade = $toefl['passing_grade'] ?? 80;
-                        $is_lulus = $result['total_skor'] >= $passing_grade;
-                        ?>
-                        <?php if($is_lulus): ?>
-                            <span class="status-lulus">✅ SELAMAT! ANDA LULUS</span>
-                            <div style="font-size: 14px; opacity: 0.7; margin-top: 5px;">
-                                Skor Anda <?php echo number_format($result['total_skor'], 1); ?> ≥ <?php echo $passing_grade; ?>
+                </div>
+                
+                <!-- ===== INTERPRETASI SKOR ===== -->
+                <?php 
+                $total = $result['total_skor'];
+                if ($total >= 100) {
+                    $level = 'excellent';
+                    $level_text = 'Mahir (Expert)';
+                    $desc = 'Anda memiliki kemampuan bahasa Inggris yang sangat baik. Anda dapat memahami dan menggunakan bahasa Inggris dengan lancar dan akurat dalam berbagai situasi.';
+                } elseif ($total >= 80) {
+                    $level = 'good';
+                    $level_text = 'Baik (Good)';
+                    $desc = 'Anda memiliki kemampuan bahasa Inggris yang baik. Anda dapat berkomunikasi dengan efektif dalam sebagian besar situasi, meskipun masih ada beberapa area yang perlu ditingkatkan.';
+                } elseif ($total >= 60) {
+                    $level = 'intermediate';
+                    $level_text = 'Menengah (Intermediate)';
+                    $desc = 'Anda memiliki kemampuan bahasa Inggris yang cukup. Anda dapat memahami dan menggunakan bahasa Inggris dalam situasi sehari-hari, tetapi masih memerlukan latihan lebih lanjut.';
+                } else {
+                    $level = 'basic';
+                    $level_text = 'Dasar (Basic)';
+                    $desc = 'Anda masih dalam tahap awal belajar bahasa Inggris. Teruslah belajar dan berlatih untuk meningkatkan kemampuan Anda.';
+                }
+                ?>
+                
+                <div class="interpretation-box">
+                    <h5>
+                        <i class="fas fa-chart-line" style="color: #F4B41A;"></i> 
+                        Interpretasi Skor
+                        <span class="level-badge level-<?php echo $level; ?>"><?php echo $level_text; ?></span>
+                    </h5>
+                    <p><?php echo $desc; ?></p>
+                    <p style="margin-top: 8px; font-size: 14px; color: #999;">
+                        <i class="fas fa-info-circle"></i> 
+                        Skor <?php echo $total; ?> dari <?php echo $result['total_benar']; ?> jawaban benar dari <?php echo $result['total_soal']; ?> soal.
+                    </p>
+                </div>
+                
+                <!-- ===== LEVEL DESKRIPSI DETAIL ===== -->
+                <div style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #f0f0f0; margin-bottom: 25px;">
+                    <h6 style="color: #1B2A4A; font-weight: 700; margin-bottom: 15px;">
+                        <i class="fas fa-info-circle" style="color: #F4B41A;"></i> 
+                        Deskripsi Kemampuan
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div style="background: #f8f9fa; border-radius: 10px; padding: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 600; color: #1B2A4A;">🎧 Listening</span>
+                                    <span style="font-weight: 700; color: #F4B41A;"><?php echo $result['listening_skor']; ?></span>
+                                </div>
+                                <div class="progress mt-2" style="height: 4px; background: #e0e0e0;">
+                                    <div class="progress-bar" style="width: <?php echo ($result['listening_skor'] / 30) * 100; ?>%; background: #F4B41A;"></div>
+                                </div>
+                                <small style="color: #999; font-size: 12px; margin-top: 5px; display: block;">
+                                    Kemampuan memahami percakapan dan kuliah dalam bahasa Inggris
+                                </small>
                             </div>
-                        <?php else: ?>
-                            <span class="status-tidak-lulus">❌ ANDA TIDAK LULUS</span>
-                            <div style="font-size: 14px; opacity: 0.7; margin-top: 5px;">
-                                Skor Anda <?php echo number_format($result['total_skor'], 1); ?> &lt; <?php echo $passing_grade; ?>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div style="background: #f8f9fa; border-radius: 10px; padding: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 600; color: #1B2A4A;">📖 Reading</span>
+                                    <span style="font-weight: 700; color: #F4B41A;"><?php echo $result['reading_skor']; ?></span>
+                                </div>
+                                <div class="progress mt-2" style="height: 4px; background: #e0e0e0;">
+                                    <div class="progress-bar" style="width: <?php echo ($result['reading_skor'] / 30) * 100; ?>%; background: #F4B41A;"></div>
+                                </div>
+                                <small style="color: #999; font-size: 12px; margin-top: 5px; display: block;">
+                                    Kemampuan memahami teks akademik dalam bahasa Inggris
+                                </small>
                             </div>
-                        <?php endif; ?>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div style="background: #f8f9fa; border-radius: 10px; padding: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 600; color: #1B2A4A;">✍️ Structure</span>
+                                    <span style="font-weight: 700; color: #F4B41A;"><?php echo $result['structure_skor']; ?></span>
+                                </div>
+                                <div class="progress mt-2" style="height: 4px; background: #e0e0e0;">
+                                    <div class="progress-bar" style="width: <?php echo ($result['structure_skor'] / 30) * 100; ?>%; background: #F4B41A;"></div>
+                                </div>
+                                <small style="color: #999; font-size: 12px; margin-top: 5px; display: block;">
+                                    Kemampuan tata bahasa dan struktur kalimat dalam bahasa Inggris
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div style="background: #f8f9fa; border-radius: 10px; padding: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 600; color: #1B2A4A;">📝 Writing</span>
+                                    <span style="font-weight: 700; color: #F4B41A;"><?php echo $result['writing_skor']; ?></span>
+                                </div>
+                                <div class="progress mt-2" style="height: 4px; background: #e0e0e0;">
+                                    <div class="progress-bar" style="width: <?php echo ($result['writing_skor'] / 30) * 100; ?>%; background: #F4B41A;"></div>
+                                </div>
+                                <small style="color: #999; font-size: 12px; margin-top: 5px; display: block;">
+                                    Kemampuan menulis dalam bahasa Inggris secara akademik
+                                </small>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="text-center">
-                    <a href="toefl.php" class="btn" style="background: #F4B41A; color: #1B2A4A; padding: 12px 40px; border-radius: 25px; font-weight: 600;">
+                
+                <!-- ===== TOMBOL ===== -->
+                <div class="text-center no-print">
+                    <a href="toefl.php" class="btn btn-back" style="background: #F4B41A; color: #1B2A4A; padding: 12px 40px; border-radius: 25px; font-weight: 600; transition: all 0.3s; text-decoration: none; display: inline-block;">
                         <i class="fas fa-arrow-left me-2"></i>Kembali ke Daftar TOEFL
                     </a>
+                    <button onclick="printResult()" class="btn btn-print" style="background: #1B2A4A; color: white; padding: 12px 40px; border-radius: 25px; font-weight: 600; transition: all 0.3s; margin-left: 10px; border: none; cursor: pointer;">
+                        <i class="fas fa-print me-2"></i>Cetak Hasil
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        // =============================================
+        // CETAK HASIL
+        // =============================================
+        function printResult() {
+            window.print();
+        }
+    </script>
+    
     <?php include '../includes/footer.php'; exit(); } ?>
 
 <?php
@@ -721,14 +1129,15 @@ foreach($sections as $idx => $sec) {
                 opt.classList.remove('selected');
             });
             element.classList.add('selected');
-            document.getElementById(inputId).checked = true;
-            
-            const soalId = parent.dataset.soalId;
-            answeredStatus[soalId] = true;
-            updateQuestionStatus();
-            updateFilterCounts();
-            updateNavButtons();
-            checkAllAnswered();
+            const radio = document.getElementById(inputId);
+            if (radio) {
+                radio.checked = true;
+                // === PANGGIL SAVE ANSWER ===
+                const soalId = parent.dataset.soalId;
+                if (soalId) {
+                    saveAnswer(soalId, radio.value);
+                }
+            }
         }
         
         // =============================================
@@ -758,6 +1167,7 @@ foreach($sections as $idx => $sec) {
             })
             .catch(error => console.error('Error:', error));
         }
+        
         // =============================================
         // TOGGLE FLAG
         // =============================================

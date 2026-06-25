@@ -143,6 +143,9 @@ $rata_rata = $total_peserta > 0 ? round($total_nilai / $total_peserta, 1) : 0;
                     <span class="badge"><?php echo $total_users; ?></span>
                 </a>
                 <div class="nav-label mt-3">Lainnya</div>
+                <a href="../index.php" class="nav-link">
+                    <i class="fas fa-home"></i> Lihat Website
+                </a>
                 <a href="../logout.php" class="nav-link" style="color: #dc3545;">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
@@ -159,7 +162,7 @@ $rata_rata = $total_peserta > 0 ? round($total_nilai / $total_peserta, 1) : 0;
                         </button>
                         <div>
                             <h4><i class="fas fa-chart-bar" style="color: #F4B41A;"></i> Nilai TOEFL: <?php echo htmlspecialchars($toefl['judul']); ?></h4>
-                            <p>Passing Grade: <strong><?php echo $toefl['passing_grade']; ?></strong> | Skala 0-120</p>
+                            <p>Skala TOEFL iBT: 0 – 120 | Passing Grade: <strong><?php echo $toefl['passing_grade']; ?></strong></p>
                         </div>
                     </div>
                 </div>
@@ -216,8 +219,6 @@ $rata_rata = $total_peserta > 0 ? round($total_nilai / $total_peserta, 1) : 0;
                         <?php if(count($nilai_list) > 0): ?>
                             <?php $no = 1; foreach($nilai_list as $n): 
                                 $is_lulus = $n['total_skor'] >= $toefl['passing_grade'];
-                                // Format skor dengan 1 desimal
-                                $skor = number_format($n['total_skor'], 1);
                             ?>
                             <tr>
                                 <td><?php echo $no++; ?></td>
@@ -225,7 +226,7 @@ $rata_rata = $total_peserta > 0 ? round($total_nilai / $total_peserta, 1) : 0;
                                 <td><?php echo htmlspecialchars($n['username']); ?></td>
                                 <td><span style="color: #28a745;"><?php echo $n['total_benar']; ?></span></td>
                                 <td><span style="color: #dc3545;"><?php echo $n['total_salah']; ?></span></td>
-                                <td><strong><?php echo $skor; ?></strong></td>
+                                <td><strong><?php echo $n['total_skor']; ?></strong></td>
                                 <td>
                                     <?php if($is_lulus): ?>
                                         <span class="badge-lulus">✅ Lulus</span>

@@ -22,8 +22,9 @@ include '../includes/header.php';
 ?>
 
 <style>
+    /* ===== RESET & BASE ===== */
     .materi-detail {
-        padding: 40px 0 60px;
+        padding: 30px 0 50px;
         background: #f8f9fa;
         min-height: 100vh;
     }
@@ -33,24 +34,137 @@ include '../includes/header.php';
         border-radius: 15px;
         padding: 40px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        max-width: 100%;
+        overflow: hidden;
     }
     
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb {
+        background: transparent;
+        padding: 0 0 15px 0;
+        margin: 0;
+        font-size: 14px;
+        flex-wrap: wrap;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        font-size: 18px;
+        color: #999;
+    }
+    
+    .breadcrumb-item a {
+        color: #1B2A4A;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    
+    .breadcrumb-item a:hover {
+        color: #F4B41A;
+    }
+    
+    .breadcrumb-item.active {
+        color: #F4B41A;
+        font-weight: 600;
+    }
+    
+    /* ===== HEADER ===== */
     .materi-header {
         border-bottom: 3px solid #F4B41A;
         padding-bottom: 20px;
         margin-bottom: 30px;
     }
     
-    .materi-header .badge {
-        font-size: 14px;
-        padding: 8px 20px;
-        border-radius: 25px;
+    .materi-header .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 15px;
     }
     
+    .materi-header h2 {
+        color: #1B2A4A;
+        font-weight: 700;
+        font-size: 28px;
+        margin: 0 0 12px 0;
+        line-height: 1.3;
+        word-break: break-word;
+    }
+    
+    .materi-header .badge-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 5px;
+    }
+    
+    .materi-header .badge {
+        font-size: 13px;
+        padding: 6px 16px;
+        border-radius: 25px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+    
+    .materi-header .badge-kategori {
+        background: #1B2A4A;
+        color: white;
+    }
+    
+    .materi-header .badge-tingkat {
+        background: #F4B41A;
+        color: #1B2A4A;
+    }
+    
+    .materi-header .badge-video {
+        background: #28a745;
+        color: white;
+    }
+    
+    .materi-header .badge-video i {
+        color: white;
+    }
+    
+    .materi-header .btn-latihan {
+        background: #1B2A4A;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    
+    .materi-header .btn-latihan:hover {
+        background: #2C4066;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .materi-header .deskripsi {
+        color: #666;
+        margin-top: 15px;
+        font-size: 16px;
+        line-height: 1.7;
+        word-break: break-word;
+    }
+    
+    /* ===== KONTEN MATERI ===== */
     .konten-materi {
         line-height: 1.8;
         font-size: 16px;
         color: #333;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     
     .konten-materi h2 {
@@ -103,18 +217,25 @@ include '../includes/header.php';
         font-size: 15px;
         line-height: 1.6;
         margin: 15px 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
     }
     
     .konten-materi table {
         width: 100%;
         border-collapse: collapse;
         margin: 15px 0;
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     .konten-materi table th,
     .konten-materi table td {
         padding: 10px 15px;
         border: 1px solid #ddd;
+        text-align: left;
+        word-break: break-word;
     }
     
     .konten-materi table th {
@@ -171,6 +292,17 @@ include '../includes/header.php';
         color: #155724;
     }
     
+    .konten-materi .example-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .konten-materi img,
+    .konten-materi iframe {
+        max-width: 100%;
+        height: auto;
+    }
+    
     /* ===== VIDEO PEMBELAJARAN ===== */
     .video-section {
         margin-top: 40px;
@@ -207,6 +339,7 @@ include '../includes/header.php';
     
     .video-wrapper iframe {
         min-height: 400px;
+        border: none;
     }
     
     .video-wrapper video {
@@ -220,6 +353,7 @@ include '../includes/header.php';
         font-size: 14px;
     }
     
+    /* ===== NAVIGASI ===== */
     .nav-buttons {
         margin-top: 30px;
         padding-top: 20px;
@@ -240,6 +374,9 @@ include '../includes/header.php';
         display: inline-flex;
         align-items: center;
         gap: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
     }
     
     .btn-nav-prev {
@@ -264,44 +401,303 @@ include '../includes/header.php';
         transform: translateX(3px);
     }
     
-    .btn-latihan {
-        background: #1B2A4A;
-        color: white;
-        padding: 12px 30px;
-        border-radius: 25px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.3s;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
+    /* ============================================================ */
+    /* ===== RESPONSIVE ===== */
+    /* ============================================================ */
+    
+    /* Tablet Landscape */
+    @media (max-width: 992px) {
+        .materi-content {
+            padding: 30px;
+        }
+        
+        .materi-header h2 {
+            font-size: 24px;
+        }
+        
+        .konten-materi h2 {
+            font-size: 24px;
+        }
+        
+        .konten-materi h3 {
+            font-size: 20px;
+        }
+        
+        .video-wrapper iframe {
+            min-height: 300px;
+        }
     }
     
-    .btn-latihan:hover {
-        background: #2C4066;
-        color: white;
-        transform: translateY(-2px);
-    }
-    
+    /* Tablet Portrait & Mobile Landscape */
     @media (max-width: 768px) {
+        .materi-detail {
+            padding: 15px 0 30px;
+        }
+        
         .materi-content {
             padding: 20px;
+            border-radius: 10px;
         }
+        
+        .breadcrumb {
+            font-size: 13px;
+        }
+        
+        .materi-header .header-top {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+        
+        .materi-header h2 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .materi-header .badge-group {
+            gap: 6px;
+        }
+        
+        .materi-header .badge {
+            font-size: 11px;
+            padding: 4px 12px;
+        }
+        
+        .materi-header .btn-latihan {
+            padding: 8px 20px;
+            font-size: 13px;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .materi-header .deskripsi {
+            font-size: 14px;
+            margin-top: 12px;
+        }
+        
+        .konten-materi {
+            font-size: 15px;
+            line-height: 1.7;
+        }
+        
         .konten-materi h2 {
-            font-size: 22px;
+            font-size: 20px;
+            margin-top: 25px;
+            padding-bottom: 8px;
         }
+        
         .konten-materi h3 {
             font-size: 18px;
+            margin-top: 20px;
         }
+        
+        .konten-materi h4 {
+            font-size: 16px;
+        }
+        
+        .konten-materi pre {
+            font-size: 13px;
+            padding: 12px 15px;
+        }
+        
+        .konten-materi table {
+            font-size: 13px;
+        }
+        
+        .konten-materi table th,
+        .konten-materi table td {
+            padding: 8px 10px;
+        }
+        
+        .konten-materi .highlight-box {
+            padding: 15px 18px;
+        }
+        
+        .konten-materi .highlight-box h4 {
+            font-size: 16px;
+        }
+        
+        .video-section {
+            margin-top: 30px;
+            padding-top: 20px;
+        }
+        
+        .video-section .video-title {
+            font-size: 17px;
+        }
+        
+        .video-wrapper {
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
         .video-wrapper iframe {
             min-height: 200px;
         }
+        
+        .video-wrapper video {
+            max-height: 300px;
+        }
+        
+        .video-wrapper .video-caption {
+            font-size: 12px;
+        }
+        
         .nav-buttons {
             flex-direction: column;
             align-items: stretch;
+            gap: 8px;
+            margin-top: 20px;
+            padding-top: 15px;
         }
+        
         .btn-nav {
             justify-content: center;
+            padding: 10px 20px;
+            font-size: 14px;
+            width: 100%;
+        }
+        
+        .btn-nav-prev {
+            order: 2;
+        }
+        
+        .btn-nav-next {
+            order: 1;
+        }
+    }
+    
+    /* Mobile Portrait */
+    @media (max-width: 480px) {
+        .materi-detail {
+            padding: 10px 0 20px;
+        }
+        
+        .materi-content {
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .breadcrumb {
+            font-size: 12px;
+            padding-bottom: 10px;
+        }
+        
+        .materi-header h2 {
+            font-size: 17px;
+        }
+        
+        .materi-header .badge {
+            font-size: 10px;
+            padding: 3px 10px;
+        }
+        
+        .materi-header .btn-latihan {
+            font-size: 12px;
+            padding: 8px 16px;
+        }
+        
+        .materi-header .deskripsi {
+            font-size: 13px;
+        }
+        
+        .konten-materi {
+            font-size: 14px;
+        }
+        
+        .konten-materi h2 {
+            font-size: 17px;
+            margin-top: 18px;
+        }
+        
+        .konten-materi h3 {
+            font-size: 15px;
+            margin-top: 15px;
+        }
+        
+        .konten-materi h4 {
+            font-size: 14px;
+        }
+        
+        .konten-materi ul,
+        .konten-materi ol {
+            padding-left: 18px;
+        }
+        
+        .konten-materi pre {
+            font-size: 12px;
+            padding: 10px 12px;
+            border-left-width: 3px;
+        }
+        
+        .konten-materi table {
+            font-size: 12px;
+        }
+        
+        .konten-materi table th,
+        .konten-materi table td {
+            padding: 6px 8px;
+            font-size: 11px;
+        }
+        
+        .video-wrapper iframe {
+            min-height: 150px;
+        }
+        
+        .video-wrapper video {
+            max-height: 200px;
+        }
+        
+        .btn-nav {
+            font-size: 13px;
+            padding: 8px 16px;
+        }
+    }
+    
+    /* Small Mobile */
+    @media (max-width: 360px) {
+        .materi-content {
+            padding: 10px;
+        }
+        
+        .materi-header h2 {
+            font-size: 15px;
+        }
+        
+        .materi-header .badge {
+            font-size: 9px;
+            padding: 2px 8px;
+        }
+        
+        .konten-materi {
+            font-size: 13px;
+        }
+        
+        .konten-materi h2 {
+            font-size: 15px;
+        }
+        
+        .video-wrapper iframe {
+            min-height: 120px;
+        }
+    }
+    
+    /* Landscape Phone */
+    @media (max-height: 600px) and (orientation: landscape) {
+        .materi-detail {
+            padding: 10px 0 20px;
+        }
+        
+        .materi-content {
+            padding: 15px;
+        }
+        
+        .video-wrapper iframe {
+            min-height: 150px;
+        }
+        
+        .video-wrapper video {
+            max-height: 180px;
         }
     }
 </style>
@@ -317,32 +713,36 @@ include '../includes/header.php';
         
         <div class="materi-content">
             <!-- HEADER -->
+            <!-- ===== HEADER ===== -->
             <div class="materi-header">
-                <div class="d-flex justify-content-between align-items-start flex-wrap">
-                    <div>
-                        <h2 style="color: #1B2A4A; font-weight: 700; font-size: 28px;">
-                            <?php echo htmlspecialchars($materi['judul']); ?>
-                        </h2>
-                        <div class="mt-2">
-                            <span class="badge" style="background: #1B2A4A; color: white;"><?php echo htmlspecialchars($materi['kategori']); ?></span>
-                            <span class="badge" style="background: #F4B41A; color: #1B2A4A;"><?php echo htmlspecialchars($materi['tingkat']); ?></span>
+                <div class="header-top">
+                    <div style="flex: 1; min-width: 0;">
+                        <h2><?php echo htmlspecialchars($materi['judul']); ?></h2>
+                        <div class="badge-group">
+                            <span class="badge badge-kategori">
+                                <i class="fas fa-tag"></i> <?php echo htmlspecialchars($materi['kategori']); ?>
+                            </span>
+                            <span class="badge badge-tingkat">
+                                <i class="fas fa-signal"></i> <?php echo htmlspecialchars($materi['tingkat']); ?>
+                            </span>
                             <?php if(!empty($materi['video_pembelajaran'])): ?>
-                                <span class="badge" style="background: #28a745; color: white;">
+                                <span class="badge badge-video">
                                     <i class="fas fa-video"></i> Ada Video
                                 </span>
                             <?php endif; ?>
                         </div>
                     </div>
-                    <div class="mt-2 mt-md-0">
+                    <div>
                         <a href="latihan_soal.php?materi_id=<?php echo $materi['id']; ?>" class="btn-latihan">
                             <i class="fas fa-puzzle-piece"></i> Latihan Soal
                         </a>
                     </div>
                 </div>
                 
-                <p style="color: #666; margin-top: 15px; font-size: 16px;">
+                <!-- Deskripsi -->
+                <div class="deskripsi">
                     <?php echo nl2br(htmlspecialchars($materi['deskripsi'])); ?>
-                </p>
+                </div>
             </div>
             
             <!-- KONTEN MATERI -->
